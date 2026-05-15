@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SchoolAPI.models;
+using SchoolAPI.DTOs;
 using SchoolAPI.models;
 
 namespace SchoolAPI.Controllers
@@ -20,7 +20,15 @@ namespace SchoolAPI.Controllers
         [HttpGet]
         public ActionResult<List<Student>> GetAll()
         {
-            return Ok(_db.Students.ToList());
+            var students = _db.Students
+            .Select(s => new StudentResponseDto
+             {
+                 id = s.Id,
+                 Name=s.Name,
+                 Grade = s.Grade
+
+             }).ToList();
+            return Ok(students);
         }
         
         
@@ -29,26 +37,41 @@ namespace SchoolAPI.Controllers
         var student = _db.Students.FirstOrDefault(s=> s.Id == id);
             if (student == null) return NotFound();
             
-            return Ok(student);
+            return Ok(new StudentResponseDto
+            {
+                id = student.Id,
+                Name = student.Name,
+                Grade = student.Grade
+            });
         
         
         }
         [HttpPost]
-        public ActionResult<Student> Create(Student student) {
-           
+        public ActionResult<Student> Create(StudentDto dto) {
+
+            var student = new Student
+            {
+                Name = dto.Name,
+                Grade = dto.Grade
+            };
             _db.Students.Add(student);
             _db.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new {id=student.Id},student);
+            return CreatedAtAction(nameof(GetById), new {id=student.Id},new StudentResponseDto
+            {
+                id=student.Id,
+                Name=student.Name,
+                Grade=student.Grade
+            });
 
 
         }
         [HttpPut("{id}")]
-        public ActionResult Update(int id , Student updated)
+        public ActionResult Update(int id , StudentDto dto)
         {
             var student = _db.Students.FirstOrDefault(s=> s.Id ==id);
             if (student == null) return NotFound();
-            student.Name = updated.Name;
-            student.Grade = updated.Grade;
+            student.Name = dto.Name;
+            student.Grade = dto.Grade;
             _db.SaveChanges();
             return NoContent();
         }
