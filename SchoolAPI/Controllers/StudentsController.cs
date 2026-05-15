@@ -10,22 +10,23 @@ namespace SchoolAPI.Controllers
     public class StudentsController:ControllerBase
 
     {
-        private static List<Student> _students = new List<Student>
-        {new Student {Id=1,Name="mohamed",Grade=99.3},
-        new Student {Id=2 , Name="Nada",Grade= 98.9}
-        };
+        private readonly AppDbContext _db;
+        public StudentsController(AppDbContext db)
+        {
+            _db = db;
+        }
        
         
         [HttpGet]
         public ActionResult<List<Student>> GetAll()
         {
-            return Ok(_students);
+            return Ok(_db.Students.ToList());
         }
         
         
         [HttpGet("{id}")]
         public ActionResult<Student> GetById(int id) { 
-        var student = _students.FirstOrDefault(s=> s.Id == id);
+        var student = _db.Students.FirstOrDefault(s=> s.Id == id);
             if (student == null) return NotFound();
             
             return Ok(student);
@@ -34,8 +35,9 @@ namespace SchoolAPI.Controllers
         }
         [HttpPost]
         public ActionResult<Student> Create(Student student) {
-            student.Id = _students.Count + 1;
-            _students.Add(student);
+           
+            _db.Students.Add(student);
+            _db.SaveChanges();
             return CreatedAtAction(nameof(GetById), new {id=student.Id},student);
 
 
@@ -43,18 +45,20 @@ namespace SchoolAPI.Controllers
         [HttpPut("{id}")]
         public ActionResult Update(int id , Student updated)
         {
-            var student = _students.FirstOrDefault(s=> s.Id ==id);
+            var student = _db.Students.FirstOrDefault(s=> s.Id ==id);
             if (student == null) return NotFound();
             student.Name = updated.Name;
             student.Grade = updated.Grade;
+            _db.SaveChanges();
             return NoContent();
         }
         [HttpDelete("{id}")]
         
         public ActionResult Delete(int id) { 
-        var student = _students.FirstOrDefault(s => s.Id==id);
+        var student = _db.Students.FirstOrDefault(s => s.Id==id);
             if ( student == null) return NotFound();
-            _students.Remove(student);  
+            _db.Students.Remove(student);
+            _db.SaveChanges();
             return NoContent();
         
         }
