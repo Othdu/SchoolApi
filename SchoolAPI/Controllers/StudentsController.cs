@@ -1,92 +1,66 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using SchoolAPI.DTOs;
 using SchoolAPI.models;
 
+
 namespace SchoolAPI.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
-    public class StudentsController:ControllerBase
-
+    public class StudentsController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public StudentsController(AppDbContext db)
+        private readonly IMapper _mapper;
+
+        public StudentsController(AppDbContext db, IMapper mapper)
         {
             _db = db;
+            _mapper = mapper;
         }
-       
-        
+
         [HttpGet]
-        public ActionResult<List<Student>> GetAll()
+        public ActionResult<List<StudentResponseDto>> GetAll()
         {
-            var students = _db.Students
-            .Select(s => new StudentResponseDto
-             {
-                 id = s.Id,
-                 Name=s.Name,
-                 Grade = s.Grade
-
-             }).ToList();
-            return Ok(students);
+            var students = _db.Students.ToList();
+            return Ok(_mapper.Map<List<StudentResponseDto>>(students));
         }
-        
-        
+
         [HttpGet("{id}")]
-        public ActionResult<Student> GetById(int id) { 
-        var student = _db.Students.FirstOrDefault(s=> s.Id == id);
+        public ActionResult<StudentResponseDto> GetById(int id)
+        {
+            var student = _db.Students.FirstOrDefault(s => s.Id == id);
             if (student == null) return NotFound();
-            
-            return Ok(new StudentResponseDto
-            {
-                id = student.Id,
-                Name = student.Name,
-                Grade = student.Grade
-            });
-        
-        
+            return Ok(_mapper.Map<StudentResponseDto>(student));
         }
-        [HttpPost]
-        public ActionResult<Student> Create(StudentDto dto) {
 
-            var student = new Student
-            {
-                Name = dto.Name,
-                Grade = dto.Grade
-            };
+        [HttpPost]
+        public ActionResult<StudentResponseDto> Create(StudentDto dto)
+        {
+            var student = _mapper.Map<Student>(dto);
             _db.Students.Add(student);
             _db.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new {id=student.Id},new StudentResponseDto
-            {
-                id=student.Id,
-                Name=student.Name,
-                Grade=student.Grade
-            });
-
-
+            return CreatedAtAction(nameof(GetById), new { id = student.Id }, _mapper.Map<StudentResponseDto>(student));
         }
+
         [HttpPut("{id}")]
-        public ActionResult Update(int id , StudentDto dto)
+        public ActionResult Update(int id, StudentDto dto)
         {
-            var student = _db.Students.FirstOrDefault(s=> s.Id ==id);
+            var student = _db.Students.FirstOrDefault(s => s.Id == id);
             if (student == null) return NotFound();
-            student.Name = dto.Name;
-            student.Grade = dto.Grade;
+            _mapper.Map(dto, student);
             _db.SaveChanges();
             return NoContent();
         }
+
         [HttpDelete("{id}")]
-        
-        public ActionResult Delete(int id) { 
-        var student = _db.Students.FirstOrDefault(s => s.Id==id);
-            if ( student == null) return NotFound();
+        public ActionResult Delete(int id)
+        {
+            var student = _db.Students.FirstOrDefault(s => s.Id == id);
+            if (student == null) return NotFound();
             _db.Students.Remove(student);
             _db.SaveChanges();
             return NoContent();
-        
         }
-
-
-
     }
 }
