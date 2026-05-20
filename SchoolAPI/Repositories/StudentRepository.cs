@@ -9,7 +9,7 @@ namespace SchoolAPI.Repositories
 
         private readonly AppDbContext _db;
         public StudentRepository(AppDbContext db) { _db = db; }
-
+        public List<Student> GetAll() => _db.Students.ToList();
         public Student? GetById(int id) =>_db.Students.FirstOrDefault( s=> s.Id == id);
 
         public void Add(Student student)=> _db.Students.Add(student);

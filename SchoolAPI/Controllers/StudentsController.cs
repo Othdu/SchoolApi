@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SchoolAPI.DTOs;
-using SchoolAPI.models;
-
+using SchoolAPI.Services;
 
 namespace SchoolAPI.Controllers
 {
@@ -10,56 +8,45 @@ namespace SchoolAPI.Controllers
     [Route("api/[controller]")]
     public class StudentsController : ControllerBase
     {
-        private readonly AppDbContext _db;
-        private readonly IMapper _mapper;
+        private readonly StudentService _service;
 
-        public StudentsController(AppDbContext db, IMapper mapper)
+        public StudentsController(StudentService service)
         {
-            _db = db;
-            _mapper = mapper;
+            _service = service;
         }
 
         [HttpGet]
         public ActionResult<List<StudentResponseDto>> GetAll()
         {
-            var students = _db.Students.ToList();
-            return Ok(_mapper.Map<List<StudentResponseDto>>(students));
+            return Ok(_service.GetAll());
         }
 
         [HttpGet("{id}")]
         public ActionResult<StudentResponseDto> GetById(int id)
         {
-            var student = _db.Students.FirstOrDefault(s => s.Id == id);
+            var student = _service.GetById(id);
             if (student == null) return NotFound();
-            return Ok(_mapper.Map<StudentResponseDto>(student));
+            return Ok(student);
         }
 
         [HttpPost]
         public ActionResult<StudentResponseDto> Create(StudentDto dto)
         {
-            var student = _mapper.Map<Student>(dto);
-            _db.Students.Add(student);
-            _db.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new { id = student.Id }, _mapper.Map<StudentResponseDto>(student));
+            var created = _service.Create(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.id }, created);
         }
 
         [HttpPut("{id}")]
         public ActionResult Update(int id, StudentDto dto)
         {
-            var student = _db.Students.FirstOrDefault(s => s.Id == id);
-            if (student == null) return NotFound();
-            _mapper.Map(dto, student);
-            _db.SaveChanges();
+            if (!_service.Update(id, dto)) return NotFound();
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            var student = _db.Students.FirstOrDefault(s => s.Id == id);
-            if (student == null) return NotFound();
-            _db.Students.Remove(student);
-            _db.SaveChanges();
+            if (!_service.Delete(id)) return NotFound();
             return NoContent();
         }
     }
