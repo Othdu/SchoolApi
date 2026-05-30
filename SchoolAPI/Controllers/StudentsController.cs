@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SchoolAPI.DTOs;
 using SchoolAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SchoolAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class StudentsController : ControllerBase
@@ -18,6 +20,7 @@ namespace SchoolAPI.Controllers
         [HttpGet]
         public ActionResult<List<StudentResponseDto>> GetAll()
         {
+            throw new Exception("Test error!");
             return Ok(_service.GetAll());
         }
 
