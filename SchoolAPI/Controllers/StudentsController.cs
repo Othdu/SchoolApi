@@ -20,7 +20,6 @@ namespace SchoolAPI.Controllers
         [HttpGet]
         public ActionResult<List<StudentResponseDto>> GetAll()
         {
-            throw new Exception("Test error!");
             return Ok(_service.GetAll());
         }
 
