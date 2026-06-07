@@ -1,28 +1,20 @@
-# 🛒 E-Commerce REST API
+# 🏫 School REST API
 
-A production-ready RESTful API built with **ASP.NET Core 9** and **Entity Framework Core**, featuring JWT authentication, role-based authorization, and a full e-commerce flow.
-
-🌐 **Live API:** https://ecommerceap.up.railway.app/swagger
-
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-9.0-blue)
-![EF Core](https://img.shields.io/badge/EF%20Core-9.0-purple)
-![Docker](https://img.shields.io/badge/Docker-deployed-2496ED)
-![Railway](https://img.shields.io/badge/Railway-live-success)
-![JWT](https://img.shields.io/badge/Auth-JWT-orange)
+A RESTful API built with **ASP.NET Core** demonstrating professional backend architecture patterns including Repository Pattern, Service Layer, JWT Authentication, and AutoMapper.
 
 ---
 
 ## ✨ Features
 
-- **JWT Authentication** — register, login, token-based auth with SHA-256 password hashing
-- **Role-based Authorization** — Admin and User roles with protected endpoints
-- **Product Management** — full CRUD with category support (Admin only)
-- **Order System** — place orders with automatic stock management
-- **Admin Dashboard** — real-time stats: total revenue, top products, recent orders
-- **Input Validation** — Data Annotations on all DTOs
-- **Error Handling** — global middleware returning clean JSON errors
+- **JWT Authentication** — register, login, Bearer token auth
+- **Full CRUD** — complete Create, Read, Update, Delete for students
+- **Repository Pattern** — clean separation between data access and business logic
+- **Service Layer** — business logic isolated from controllers
+- **DTOs** — separate input and response models
+- **AutoMapper** — automatic model-to-DTO mapping
+- **Input Validation** — Data Annotations on all request models
+- **Error Handling** — global middleware returning structured JSON errors
 - **Swagger UI** — interactive API documentation with Bearer token support
-- **Docker Deployment** — containerized and deployed to Railway cloud
 
 ---
 
@@ -32,11 +24,10 @@ A production-ready RESTful API built with **ASP.NET Core 9** and **Entity Framew
 Controller → Service → Repository → Database
 ```
 
-Clean separation of concerns:
-- **Controllers** — handle HTTP only, zero business logic
-- **Services** — business logic and DTO mapping
-- **Repositories** — database access only
-- **Middleware** — cross-cutting concerns (error handling)
+- **Controllers** — receive HTTP requests, call service, return response
+- **Services** — business logic, DTO mapping with AutoMapper
+- **Repositories** — all database access via Entity Framework Core
+- **Middleware** — global error handling
 
 ---
 
@@ -44,26 +35,13 @@ Clean separation of concerns:
 
 | Layer | Technology |
 |---|---|
-| Framework | ASP.NET Core 9 |
-| ORM | Entity Framework Core 9 |
-| Database | PostgreSQL (Railway) |
+| Framework | ASP.NET Core |
+| ORM | Entity Framework Core |
+| Database | SQL Server |
 | Authentication | JWT Bearer Tokens |
 | Mapping | AutoMapper |
 | Documentation | Swagger / Swashbuckle |
-| Deployment | Docker + Railway |
 | Language | C# |
-
----
-
-## 📦 Database Schema
-
-```
-Users ──────────────── Orders
-         1               │
-         │               │ has many
-         │               ▼
-     places         OrderItems ──── Products ──── Categories
-```
 
 ---
 
@@ -75,33 +53,14 @@ Users ──────────────── Orders
 | POST | /api/auth/register | Create account | Public |
 | POST | /api/auth/login | Login + get token | Public |
 
-### Categories
+### Students
 | Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| GET | /api/categories | Get all categories | Public |
-| POST | /api/categories | Create category | Admin |
-| DELETE | /api/categories/{id} | Delete category | Admin |
-
-### Products
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | /api/products | Get all products | Public |
-| GET | /api/products/{id} | Get product by id | Public |
-| POST | /api/products | Create product | Admin |
-| PUT | /api/products/{id} | Update product | Admin |
-| DELETE | /api/products/{id} | Delete product | Admin |
-
-### Orders
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | /api/orders | Get my orders | User |
-| GET | /api/orders/{id} | Get order by id | User |
-| POST | /api/orders | Place new order | User |
-
-### Dashboard
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| GET | /api/dashboard | Admin stats | Admin |
+| GET | /api/students | Get all students | Required |
+| GET | /api/students/{id} | Get student by id | Required |
+| POST | /api/students | Create student | Required |
+| PUT | /api/students/{id} | Update student | Required |
+| DELETE | /api/students/{id} | Delete student | Required |
 
 ---
 
@@ -109,21 +68,21 @@ Users ──────────────── Orders
 
 ### Prerequisites
 - .NET 9 SDK
-- PostgreSQL
+- SQL Server
 - Visual Studio 2022
 
 ### Steps
 
 1. Clone the repo
 ```bash
-git clone https://github.com/Othdu/ECommerceAPI.git
-cd ECommerceAPI
+git clone https://github.com/Othdu/SchoolAPI.git
+cd SchoolAPI
 ```
 
 2. Update connection string in `appsettings.json`
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Host=localhost;Port=5432;Database=ECommerceDB;Username=postgres;Password=yourpassword"
+  "DefaultConnection": "Server=YOUR_SERVER;Database=SchoolAPIDB;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;"
 }
 ```
 
@@ -131,8 +90,8 @@ cd ECommerceAPI
 ```json
 "JwtSettings": {
   "SecretKey": "YourSuperSecretKeyHere",
-  "Issuer": "ECommerceAPI",
-  "Audience": "ECommerceAPIUsers",
+  "Issuer": "SchoolAPI",
+  "Audience": "SchoolAPIUsers",
   "ExpiryHours": 1
 }
 ```
@@ -156,28 +115,5 @@ dotnet run
 1. Register → `POST /api/auth/register`
 2. Login → `POST /api/auth/login` → copy the token
 3. Click **Authorize** in Swagger → enter `Bearer {token}`
-4. All protected endpoints are now accessible
-
-### Make yourself Admin
-After registering, update your role in the database:
-```sql
-UPDATE "Users" SET "Role" = 'Admin' WHERE "Email" = 'your@email.com';
-```
-
----
-
-## 📊 Dashboard Response Example
-
-```json
-{
-  "totalUsers": 10,
-  "totalOrders": 25,
-  "totalRevenue": 15420.50,
-  "totalProducts": 8,
-  "topProducts": [
-    { "productName": "iPhone 15", "totalSold": 12, "totalRevenue": 11988 }
-  ],
-  "recentOrders": [
-    { "id": 25, "totalAmount": 999.99, "createdAt": "2026-05-31", "userEmail": "user@test.com" }
-  ]
-}
+4. All student endpoints are now accessible
+=
